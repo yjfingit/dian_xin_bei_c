@@ -1,0 +1,37 @@
+import shutil
+import os
+
+
+input_data_yaml_path = '/kaggle/input/dian-xin-bei/ultralytics-main/data.yaml'  # data.yaml 文件路径
+
+working_data_yaml_path = '/kaggle/working/data.yaml'  # 目标路径
+
+# 复制 data.yaml 文件到工作目录
+shutil.copy(input_data_yaml_path, working_data_yaml_path)
+
+print("Data and data.yaml copied to working directory.")
+import yaml
+
+# 读取并修改 data.yaml 文件
+data_yaml_path = '/kaggle/working/data.yaml'
+
+# 读取 YAML 文件
+with open(data_yaml_path, 'r') as f:
+    data = yaml.safe_load(f)  # 加载 YAML 内容
+
+# 修改文件内容
+data['train'] = '/kaggle/input/new-dataset/train'  # 更新 train 路径
+data['val'] = '/kaggle/input/new-dataset/val'      # 更新 val 路径
+
+# 将修改后的内容写回 data.yaml
+with open(data_yaml_path, 'w') as f:
+    yaml.dump(data, f)
+
+print(f"Updated {data_yaml_path} with new paths.")
+
+# 打印修改后的 data.yaml 内容
+with open(data_yaml_path, 'r') as f:
+    updated_data = yaml.safe_load(f)
+
+print("Updated data.yaml contents:")
+print(updated_data)
