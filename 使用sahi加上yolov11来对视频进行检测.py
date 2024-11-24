@@ -1,3 +1,4 @@
+#这个代码可以比较流畅地调用sahi库，但是我想要调用cpu和GPU一起行动，但是发现似乎不如单独GPU更快
 # 导入所需的库
 from sahi import AutoDetectionModel  # 用于自动化目标检测的模型
 from sahi.predict import get_sliced_prediction  # 用于进行预测的函数
