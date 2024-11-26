@@ -1,0 +1,113 @@
+import shutil
+import os
+
+
+input_data_yaml_path = '/kaggle/input/dataset-v2/data.yaml'  # data.yaml 文件路径
+
+working_data_yaml_path = '/kaggle/working/data.yaml'  # 目标路径
+
+# 复制 data.yaml 文件到工作目录
+shutil.copy(input_data_yaml_path, working_data_yaml_path)
+
+print("Data and data.yaml copied to working directory.")
+import yaml
+
+# 读取并修改 data.yaml 文件
+data_yaml_path = '/kaggle/working/data.yaml'
+
+# 读取 YAML 文件
+with open(data_yaml_path, 'r') as f:
+    data = yaml.safe_load(f)  # 加载 YAML 内容
+if 'train_code' in data:
+    del data['train_code']
+# 修改文件内容
+data['train'] = '/kaggle/input/dataset-v2/train'  # 更新 train 路径
+data['val'] = '/kaggle/input/dataset-v2/val'      # 更新 val 路径
+data['test']='/kaggle/input/dataset-v2/test'      # 更新 test 路径
+# 将修改后的内容写回 data.yaml
+with open(data_yaml_path, 'w') as f:
+    yaml.dump(data, f)
+
+print(f"Updated {data_yaml_path} with new paths.")
+
+# 打印修改后的 data.yaml 内容
+with open(data_yaml_path, 'r') as f:
+    updated_data = yaml.safe_load(f)
+
+print("Updated data.yaml contents:")
+print(updated_data)
+
+# !pip install -U -r /kaggle/input/dian-xin-bei/requirements.txt
+import warnings
+!pip install ultralytics  # 安装ultralytics库
+from ultralytics import YOLO
+import os
+
+# 忽略警告
+warnings.filterwarnings('ignore')
+
+# Kaggle环境下的训练、验证和测试数据集路径
+train_path = '/kaggle/input/dataset-v2/train'
+val_path = '/kaggle/input/dataset-v2/val'
+test_path = '/kaggle/input/dataset-v2/test'
+
+# 检查路径是否存在
+print("Train path exists:", os.path.exists(train_path))
+print("Val path exists:", os.path.exists(val_path))
+print("Test path exists:", os.path.exists(test_path))
+
+if __name__ == '__main__':
+    # 数据配置文件路径
+    data_path = '/kaggle/working/data.yaml'
+
+    # 加载模型，若已有预训练权重则加载
+    model = YOLO('/kaggle/input/best_v2/pytorch/default/1/best (5).pt')  # 使用YOLOv5s的预训练模型
+
+    # 开始训练
+    model.train(
+        data=data_path,
+        imgsz=512,  # 输入图像分辨率
+        epochs=1000,  # 训练轮次
+        batch=32,  # 减小批量大小
+        workers=8,  # 增加数据加载线程数
+        device='0',  # 使用 GPU
+        optimizer='AdamW',
+        lr0=0.001,  # 初始学习率
+        lrf=0.00005,  # 最终学习率
+        warmup_epochs=10,  # 热身轮次
+        warmup_momentum=0.8,
+        close_mosaic=50,  # 延迟 Mosaic 关闭
+        multi_scale=True,  # 多尺度训练
+        project='runs/train',
+        name='dian_xin_bei',
+        single_cls=False,
+        cache=False,  # 数据缓存到 CPU 内存
+        half=True,  # 启用混合精度训练
+        weight_decay=0.00005,  # 减小权重衰减
+        save_period=100,  # 每 100 个 epoch 保存一次模型
+        augment=True,  # 开启增强
+        task='detect',          # 明确指定为目标检测任务
+        hsv_h=0.015, hsv_s=0.7, hsv_v=0.4,
+        degrees=0.0, translate=0.1, scale=0.5, shear=0.0,
+        flipud=0.0, fliplr=0.5,
+        mosaic=1.0, mixup=0.5,
+    )
+
+    print("Training complete.")
+
+    # 使用测试集评估模型
+    print("Starting evaluation on test set...")
+    results = model.val(
+        data=data_path,  # 数据路径
+        imgsz=640,  # 测试时图像尺寸
+        batch=32,  # 批量大小
+        split='test',  # 指定使用测试集
+        device='0',  # 使用GPU
+        save_json=True,  # 生成COCO格式的结果文件
+        save_txt=True,  # 保存预测到文本文件
+    )
+    print("Evaluation on test set complete.")
+
+    # 输出测试集的评估结果
+    print("Test set results:")
+    print(results)
