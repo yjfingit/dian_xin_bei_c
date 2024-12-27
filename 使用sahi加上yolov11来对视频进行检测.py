@@ -1,4 +1,3 @@
-#这个代码可以比较流畅地调用sahi库，但是我想要调用cpu和GPU一起行动，但是发现似乎不如单独GPU更快
 # 导入所需的库
 from sahi import AutoDetectionModel  # 用于自动化目标检测的模型
 from sahi.predict import get_sliced_prediction  # 用于进行预测的函数
@@ -10,18 +9,18 @@ import time  # 用于计时，计算帧率
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 # 指定 YOLOv8 模型的路径
-yolov8_model_path = r"G:\dian_xing_bei\在kaggle训练的模型\kaggle_best_3(0.702).pt"
+yolov8_model_path = r"G:\dian_xing_bei\在kaggle训练的模型\kaggle_best(0.877).pt"
 
 # 加载预训练的目标检测模型，指定模型类型、路径、置信度阈值和使用的设备（GPU 或 CPU）
 detection_model = AutoDetectionModel.from_pretrained(
     model_type='yolov8',  # 使用 YOLOv8 模型
     model_path=yolov8_model_path,  # 指定训练好的模型路径
-    confidence_threshold=0.10,  # 设置置信度阈值，低于此值的预测将被忽略
+    confidence_threshold=0.20,  # 设置置信度阈值，低于此值的预测将被忽略
     device='cuda:0',  # 设置设备为 GPU（cuda:0 表示使用第一张 GPU），如果是 CPU 设备可改为 'cpu'
 )
 
 # 设置视频文件路径
-video_path = r"G:\dian_xing_bei\用来测试的视频\帅气大佬抽烟视频.mp4"  # 输入视频的路径
+video_path = r"G:\dian_xing_bei\用来测试的视频\影史上关于躺着的镜头.mp4"  # 输入视频的路径
 output_video_path = r"G:\dian_xing_bei\用来测试的视频\output_video.avi"  # 输出视频路径
 
 # 确保输出文件夹存在
@@ -55,6 +54,7 @@ while cap.isOpened():
         break
 
     # 降低分辨率以加速处理
+    # frame_resized = cv2.resize(frame, (frame_width // 2, frame_height // 2))
     frame_resized = cv2.resize(frame, (frame_width // 2, frame_height // 2))
 
     # 记录每帧的处理时间
