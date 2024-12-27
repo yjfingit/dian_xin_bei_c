@@ -1,0 +1,43 @@
+# 导入所需的库
+from sahi import AutoDetectionModel  # 用于自动化目标检测的模型
+from sahi.utils.cv import read_image  # 用于读取图像的函数
+from sahi.utils.file import download_from_url  # 用于从 URL 下载文件的函数
+from sahi.predict import get_prediction, get_sliced_prediction, predict  # 用于进行预测的函数
+import cv2  # OpenCV，用于图像处理
+import os  # 用于操作文件和环境变量
+
+# 设置环境变量，防止 OpenCV 报错
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+
+# 指定 YOLOv8 模型的路径
+yolov8_model_path = r"G:\dian_xing_bei\在kaggle训练的模型\kaggle_best_10(0.896).pt"
+
+# 加载预训练的目标检测模型，指定模型类型、路径、置信度阈值和使用的设备（GPU 或 CPU）
+detection_model = AutoDetectionModel.from_pretrained(
+    model_type='yolov8',  # 使用 YOLOv8 模型
+    model_path=yolov8_model_path,  # 指定训练好的模型路径
+    confidence_threshold=0.25,  # 设置置信度阈值，低于此值的预测将被忽略
+    device='cuda:0',  # 设置设备为 GPU（cuda:0 表示使用第一张 GPU），如果是 CPU 设备可改为 'cpu'
+)
+
+# 使用切片推理进行预测
+result = get_sliced_prediction(
+    r"G:\dian_xing_bei\2024_dian_xin_bei_dataset\images\person\person_24.jpg",  # 输入图像的路径
+    detection_model,  # 使用已加载的检测模型
+    slice_height=1080,  # 设置每个切片的高度（单位：像素）
+    slice_width=640,  # 设置每个切片的宽度（单位：像素）
+    overlap_height_ratio=0.05,  # 设置切片垂直方向上的重叠比例，这里是 5%
+    overlap_width_ratio=0.05  # 设置切片水平方向上的重叠比例，这里是 5%
+)
+
+# 导出预测结果的可视化图像，保存路径为 demo_data 文件夹
+# hide_labels=False 表示显示标签，hide_conf=False 表示显示置信度
+result.export_visuals(export_dir="demo_data/", hide_labels=False, hide_conf=False)
+
+# 使用 OpenCV 读取图像文件
+image = cv2.imread("demo_data/prediction_visual.png")
+
+# 使用 OpenCV 显示图像
+cv2.imshow("Prediction Visual", image)  # 显示图像
+cv2.waitKey(0)  # 等待按键输入
+cv2.destroyAllWindows()  # 关闭所有 OpenCV 图像窗口
